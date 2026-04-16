@@ -155,7 +155,8 @@ The notifier now sends OpenClaw a structured factual payload plus a compact inst
 Example:
 
 ```env
-OPENCLAW_BRIDGE_COMMAND="/path/to/openclaw-reminder-wrapper.sh"
+OPENCLAW_BRIDGE_COMMAND="/app/application-notifier/deploy/openclaw-reminder-wrapper.sh"
+OPENCLAW_REMINDER_COMPOSE_COMMAND="your-actual-openclaw-compose-entrypoint"
 ```
 
 The notifier exposes these payload variables to the bridge process:
@@ -170,8 +171,15 @@ The notifier exposes these payload variables to the bridge process:
 - `APPLICATION_NOTIFIER_TIMEZONE`
 - `APPLICATION_NOTIFIER_BRIDGE_TARGET`
 - `OPENCLAW_PYTHON_BIN`
+- `OPENCLAW_REMINDER_COMPOSE_COMMAND`
 
 The primary OpenClaw path should read `APPLICATION_NOTIFIER_PAYLOAD_JSON` or `APPLICATION_NOTIFIER_PAYLOAD_FILE` plus `APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS`. The fallback plain-text path only uses `APPLICATION_NOTIFIER_MESSAGE_TEXT` when the structured handoff is unavailable.
+
+The bundled wrapper at [deploy/openclaw-reminder-wrapper.sh](/Users/dhnkjc7/Documents/application-notifier/deploy/openclaw-reminder-wrapper.sh) is intentionally tiny:
+
+1. it validates that the structured handoff vars exist
+2. it invokes the real OpenClaw compose/send entrypoint you set in `OPENCLAW_REMINDER_COMPOSE_COMMAND`
+3. OpenClaw then owns the final phrasing and Telegram delivery
 
 ## Usage
 
