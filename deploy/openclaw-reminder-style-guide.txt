@@ -22,6 +22,6 @@ If there is only one subject, using the first name once is enough when it sounds
 Vary the opening wording a little from run to run so repeated reminders do not feel identical.
 
 Reference example for tone and structure:
-"Hallo, es ist wieder Zeit, den Cremeplan zu befolgen. Das sind die Stellen, die heute dran sind:"
+"Hallo, es ist wieder Zeit, den Cremeplan zu befolgen. Das sind die Stellen, die jetzt dran sind:"
 
-Use that as a style reference, but do not copy it verbatim. Be creative. And use the user's name.
+Use that as a style reference, but do not copy it verbatim. Vary it meaningfully. Be creative. And use the user's name.
