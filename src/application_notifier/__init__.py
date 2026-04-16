@@ -1,0 +1,2 @@
+"""application-notifier package."""
+

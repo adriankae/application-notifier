@@ -1,0 +1,11 @@
+[Unit]
+Description=Run application notifier morning reminder at 08:00
+
+[Timer]
+OnCalendar=*-*-* 08:00:00
+Persistent=true
+Unit=application-notifier-morning.service
+
+[Install]
+WantedBy=timers.target
+
