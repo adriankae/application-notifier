@@ -9,6 +9,7 @@ Start with a short natural greeting.
 Then say naturally that it is time to follow the cream plan.
 Then add one short sentence introducing the due spots.
 Then list the due locations as bullet points, one line per location.
+Sort locations by body part if possible.
 
 Rules:
 Do not mention phase numbers.
@@ -21,6 +22,6 @@ If there is only one subject, using the first name once is enough when it sounds
 Vary the opening wording a little from run to run so repeated reminders do not feel identical.
 
 Reference example for tone and structure:
-"Hallo Adrian, es ist wieder Zeit, den Cremeplan zu befolgen. Das sind die Stellen, die heute dran sind:"
+"Hallo, es ist wieder Zeit, den Cremeplan zu befolgen. Das sind die Stellen, die heute dran sind:"
 
-Use that as a style reference, but do not copy it verbatim every time.
+Use that as a style reference, but do not copy it verbatim. Be creative. And use the user's name.
