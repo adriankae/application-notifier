@@ -52,7 +52,7 @@ tar \
   --exclude='.venv' \
   --exclude='__pycache__' \
   --exclude='*.pyc' \
-  -C "$REPO_DIR" -cf - . | docker exec -i "$OPENCLAW_CONTAINER_NAME" tar -C "$NOTIFIER_DEPLOY_PATH_IN_CONTAINER" -xf -
+  -C "$REPO_DIR" -cf - . | docker exec -u 0 -i "$OPENCLAW_CONTAINER_NAME" tar -C "$NOTIFIER_DEPLOY_PATH_IN_CONTAINER" -xf -
 
 detected_czm_config=""
 for candidate in \
