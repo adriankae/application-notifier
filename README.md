@@ -148,24 +148,30 @@ Supported env vars:
 - `OPENCLAW_BRIDGE_TIMEOUT_SECONDS`
 - `OPENCLAW_PYTHON_BIN`
 
-The bridge command is expected to run inside the existing OpenClaw container and to consume the payload from the environment or from the temp files the notifier passes in.
+The bridge command is expected to run inside the existing OpenClaw container and to consume the payload and instructions from the environment or from the temp files the notifier passes in.
+
+The notifier now sends OpenClaw a structured factual payload plus a compact instruction block. OpenClaw is expected to turn that into the final human-sounding reminder and send it through the existing Telegram bot/chat loop.
 
 Example:
 
 ```env
-OPENCLAW_BRIDGE_COMMAND=sh -lc 'exec openclaw message send --channel telegram --target "your-chat-or-username" --message "$APPLICATION_NOTIFIER_MESSAGE_TEXT"'
+OPENCLAW_BRIDGE_COMMAND="/path/to/openclaw-reminder-wrapper.sh"
 ```
 
 The notifier exposes these payload variables to the bridge process:
 
 - `APPLICATION_NOTIFIER_PAYLOAD_FILE`
+- `APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS_FILE`
 - `APPLICATION_NOTIFIER_FALLBACK_FILE`
 - `APPLICATION_NOTIFIER_PAYLOAD_JSON`
-- `APPLICATION_NOTIFIER_MESSAGE_TEXT`
+- `APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS`
+- `APPLICATION_NOTIFIER_MESSAGE_TEXT` when `OPENCLAW_BRIDGE_FALLBACK_COMMAND` is used or `--force-fallback` is set
 - `APPLICATION_NOTIFIER_SLOT`
 - `APPLICATION_NOTIFIER_TIMEZONE`
 - `APPLICATION_NOTIFIER_BRIDGE_TARGET`
 - `OPENCLAW_PYTHON_BIN`
+
+The primary OpenClaw path should read `APPLICATION_NOTIFIER_PAYLOAD_JSON` or `APPLICATION_NOTIFIER_PAYLOAD_FILE` plus `APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS`. The fallback plain-text path only uses `APPLICATION_NOTIFIER_MESSAGE_TEXT` when the structured handoff is unavailable.
 
 ## Usage
 
@@ -222,6 +228,17 @@ docker exec <openclaw-container> python3 /app/application-notifier/run_reminder.
 docker exec <openclaw-container> python3 /app/application-notifier/run_reminder.py --slot morning
 docker exec <openclaw-container> python3 /app/application-notifier/run_reminder.py --slot evening
 ```
+
+### Bridge contract
+
+The preferred handoff is:
+
+1. notifier builds deterministic facts and grouping
+2. notifier passes the structured payload and instructions to OpenClaw
+3. OpenClaw composes the final reminder text
+4. OpenClaw sends it through the existing Telegram bot/chat loop
+
+The deterministic fallback text is retained only as a last resort if the structured OpenClaw handoff fails and no better OpenClaw-compatible send path is available.
 
 ### Container debugging
 

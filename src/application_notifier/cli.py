@@ -41,6 +41,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run or args.print_only:
         print(json.dumps(result.payload, ensure_ascii=False, indent=2))
         print()
+        print("OpenClaw handoff instructions:")
+        print(result.bridge_instructions)
+        print()
+        print("Deterministic fallback text (secondary):")
         print(result.fallback_text)
         return 0
 
@@ -54,4 +58,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

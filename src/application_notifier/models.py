@@ -72,6 +72,6 @@ class ReminderPayload:
 class BridgeInvocation:
     command: list[str]
     payload_file: Path
+    instructions_file: Path
     fallback_file: Path
     plain_text_mode: bool = False
-

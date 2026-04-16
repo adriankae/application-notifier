@@ -10,7 +10,7 @@ from pathlib import Path
 from .backend_client import BackendClient
 from .config import AppConfig, resolve_app_config
 from .fallback_renderer import render_fallback_text
-from .openclaw_bridge import invoke_bridge, payload_to_dict
+from .openclaw_bridge import build_handoff_instructions, invoke_bridge, payload_to_dict
 from .payload_builder import build_reminder_payload
 from .selector import select_due_items
 
@@ -23,6 +23,7 @@ class RunResult:
     sent: bool
     skipped_locked: bool
     payload: dict[str, object]
+    bridge_instructions: str
     fallback_text: str
     bridge_stdout: str = ""
     bridge_stderr: str = ""
@@ -78,7 +79,7 @@ def run_with_config(
     with _file_lock(config.lock_path) as lock_handle:
         if lock_handle is None:
             log.info("lock is already held; skipping this reminder run")
-            return RunResult(sent=False, skipped_locked=True, payload={}, fallback_text="")
+            return RunResult(sent=False, skipped_locked=True, payload={}, bridge_instructions="", fallback_text="")
 
         client = BackendClient(config.backend)
         due_items = client.list_due_items()
@@ -86,13 +87,21 @@ def run_with_config(
         subjects = client.list_subjects()
         locations = client.list_locations()
         payload = build_reminder_payload(slot, config.backend.timezone, selected, subjects, locations)
+        bridge_instructions = build_handoff_instructions(payload)
         fallback_text = render_fallback_text(payload)
         payload_dict = payload_to_dict(payload)
 
         if dry_run or print_only:
             log.info("dry-run payload: %s", json.dumps(payload_dict, ensure_ascii=False, indent=2))
+            log.info("dry-run OpenClaw instructions:\n%s", bridge_instructions)
             log.info("dry-run fallback text:\n%s", fallback_text)
-            return RunResult(sent=False, skipped_locked=False, payload=payload_dict, fallback_text=fallback_text)
+            return RunResult(
+                sent=False,
+                skipped_locked=False,
+                payload=payload_dict,
+                bridge_instructions=bridge_instructions,
+                fallback_text=fallback_text,
+            )
 
         try:
             bridge_result = invoke_bridge(
@@ -106,6 +115,7 @@ def run_with_config(
                 sent=True,
                 skipped_locked=False,
                 payload=payload_dict,
+                bridge_instructions=bridge_result.instructions,
                 fallback_text=fallback_text,
                 bridge_stdout=bridge_result.stdout,
                 bridge_stderr=bridge_result.stderr,
@@ -124,9 +134,9 @@ def run_with_config(
                     sent=True,
                     skipped_locked=False,
                     payload=payload_dict,
+                    bridge_instructions=bridge_result.instructions,
                     fallback_text=fallback_text,
                     bridge_stdout=bridge_result.stdout,
                     bridge_stderr=bridge_result.stderr,
                 )
             raise
-

@@ -19,18 +19,38 @@ class BridgeResult:
     stdout: str
     stderr: str
     plain_text_mode: bool
+    instructions: str
 
 
-def _write_payload_files(payload: ReminderPayload, fallback_text: str) -> tuple[Path, Path]:
+def build_handoff_instructions(payload: ReminderPayload) -> str:
+    payload_dict = payload_to_dict(payload)
+    payload_json = json.dumps(payload_dict, ensure_ascii=False, indent=2)
+    return (
+        "You are OpenClaw, and you own the final reminder wording and Telegram delivery.\n"
+        "Write a short, human-sounding reminder using only the facts in the structured payload.\n"
+        "Do not invent facts, extra locations, or medical advice.\n"
+        "Mention every due location in the payload.\n"
+        "Keep it concise and natural for Telegram.\n"
+        "Then send the reminder through the existing Telegram bot/chat loop.\n\n"
+        "Structured payload:\n"
+        f"{payload_json}\n"
+    )
+
+
+def _write_payload_files(payload: ReminderPayload, instructions: str, fallback_text: str) -> tuple[Path, Path, Path]:
     payload_fd, payload_name = tempfile.mkstemp(prefix="application-notifier-payload-", suffix=".json")
+    instructions_fd, instructions_name = tempfile.mkstemp(prefix="application-notifier-instructions-", suffix=".txt")
     fallback_fd, fallback_name = tempfile.mkstemp(prefix="application-notifier-fallback-", suffix=".txt")
     os.close(payload_fd)
+    os.close(instructions_fd)
     os.close(fallback_fd)
     payload_file = Path(payload_name)
+    instructions_file = Path(instructions_name)
     fallback_file = Path(fallback_name)
     payload_file.write_text(json.dumps(payload_to_dict(payload), ensure_ascii=False, indent=2), encoding="utf-8")
+    instructions_file.write_text(instructions, encoding="utf-8")
     fallback_file.write_text(fallback_text, encoding="utf-8")
-    return payload_file, fallback_file
+    return payload_file, instructions_file, fallback_file
 
 
 def payload_to_dict(payload: ReminderPayload) -> dict[str, object]:
@@ -60,10 +80,12 @@ def build_invocation(
     command = bridge.fallback_command if plain_text_mode and bridge.fallback_command else bridge.command
     if not command:
         raise ValueError("OPENCLAW_BRIDGE_COMMAND is not configured")
-    payload_file, fallback_file = _write_payload_files(payload, fallback_text)
+    instructions = build_handoff_instructions(payload)
+    payload_file, instructions_file, fallback_file = _write_payload_files(payload, instructions, fallback_text)
     return BridgeInvocation(
         command=shlex.split(command),
         payload_file=payload_file,
+        instructions_file=instructions_file,
         fallback_file=fallback_file,
         plain_text_mode=plain_text_mode,
     )
@@ -79,21 +101,27 @@ def invoke_bridge(
     timeout_seconds: int | None = None,
 ) -> BridgeResult:
     invocation = build_invocation(bridge, payload, fallback_text, plain_text_mode=plain_text_mode)
+    instructions_text = invocation.instructions_file.read_text(encoding="utf-8")
     child_env = dict(os.environ)
     if env:
         child_env.update(env)
     child_env.update(
         {
             "APPLICATION_NOTIFIER_PAYLOAD_FILE": str(invocation.payload_file),
+            "APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS_FILE": str(invocation.instructions_file),
             "APPLICATION_NOTIFIER_FALLBACK_FILE": str(invocation.fallback_file),
             "APPLICATION_NOTIFIER_PAYLOAD_JSON": json.dumps(payload_to_dict(payload), ensure_ascii=False),
-            "APPLICATION_NOTIFIER_MESSAGE_TEXT": fallback_text,
+            "APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS": instructions_text,
             "APPLICATION_NOTIFIER_SLOT": payload.slot,
             "APPLICATION_NOTIFIER_TIMEZONE": payload.timezone,
             "APPLICATION_NOTIFIER_BRIDGE_TARGET": bridge.target or "",
             "APPLICATION_NOTIFIER_RENDER_MODE": "plain_text" if plain_text_mode else "structured",
         }
     )
+    if plain_text_mode:
+        child_env["APPLICATION_NOTIFIER_MESSAGE_TEXT"] = fallback_text
+    else:
+        child_env.pop("APPLICATION_NOTIFIER_MESSAGE_TEXT", None)
 
     proc = subprocess.run(
         invocation.command,
@@ -105,6 +133,7 @@ def invoke_bridge(
     )
     try:
         invocation.payload_file.unlink(missing_ok=True)
+        invocation.instructions_file.unlink(missing_ok=True)
         invocation.fallback_file.unlink(missing_ok=True)
     except OSError:
         pass
@@ -119,4 +148,5 @@ def invoke_bridge(
         stdout=proc.stdout,
         stderr=proc.stderr,
         plain_text_mode=plain_text_mode,
+        instructions=instructions_text,
     )
