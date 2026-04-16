@@ -23,6 +23,7 @@ class OpenClawBridgeConfig:
     fallback_command: str | None
     target: str | None
     timeout_seconds: int
+    reminder_style_guide: str | None = None
 
 
 @dataclass(slots=True, frozen=True)

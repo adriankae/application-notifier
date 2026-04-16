@@ -22,19 +22,29 @@ class BridgeResult:
     instructions: str
 
 
-def build_handoff_instructions(payload: ReminderPayload) -> str:
+def build_handoff_instructions(bridge: OpenClawBridgeConfig, payload: ReminderPayload) -> str:
     payload_dict = payload_to_dict(payload)
     payload_json = json.dumps(payload_dict, ensure_ascii=False, indent=2)
-    return (
+    instructions = (
         "You are OpenClaw, and you own the final reminder wording and Telegram delivery.\n"
         "Write a short, human-sounding reminder using only the facts in the structured payload.\n"
         "Do not invent facts, extra locations, or medical advice.\n"
         "Mention every due location in the payload.\n"
         "Keep it concise and natural for Telegram.\n"
-        "Then send the reminder through the existing Telegram bot/chat loop.\n\n"
+        "Then send the reminder through the existing Telegram bot/chat loop.\n"
+    )
+    if bridge.reminder_style_guide:
+        instructions += (
+            "\n"
+            "Style guide to follow:\n"
+            f"{bridge.reminder_style_guide.strip()}\n"
+        )
+    instructions += (
+        "\n"
         "Structured payload:\n"
         f"{payload_json}\n"
     )
+    return instructions
 
 
 def _write_payload_files(payload: ReminderPayload, instructions: str, fallback_text: str) -> tuple[Path, Path, Path]:
@@ -80,7 +90,7 @@ def build_invocation(
     command = bridge.fallback_command if plain_text_mode and bridge.fallback_command else bridge.command
     if not command:
         raise ValueError("OPENCLAW_BRIDGE_COMMAND is not configured")
-    instructions = build_handoff_instructions(payload)
+    instructions = build_handoff_instructions(bridge, payload)
     payload_file, instructions_file, fallback_file = _write_payload_files(payload, instructions, fallback_text)
     return BridgeInvocation(
         command=shlex.split(command),

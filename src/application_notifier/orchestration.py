@@ -87,7 +87,7 @@ def run_with_config(
         subjects = client.list_subjects()
         locations = client.list_locations()
         payload = build_reminder_payload(slot, config.backend.timezone, selected, subjects, locations)
-        bridge_instructions = build_handoff_instructions(payload)
+        bridge_instructions = build_handoff_instructions(config.bridge, payload)
         fallback_text = render_fallback_text(payload)
         payload_dict = payload_to_dict(payload)
 

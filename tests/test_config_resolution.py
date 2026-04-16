@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from application_notifier.config import resolve_app_config
 from application_notifier.czm_config import resolve_backend_config
 
 
@@ -41,3 +42,20 @@ def test_config_resolution_defaults_base_url(tmp_path: Path):
     assert resolved.base_url == "http://localhost:28173"
     assert resolved.api_key == "file-key"
 
+
+def test_app_config_combines_style_guide_and_file(tmp_path: Path):
+    config = tmp_path / "config.toml"
+    style_file = tmp_path / "style.txt"
+    config.write_text('api_key = "file-key"\n', encoding="utf-8")
+    style_file.write_text("Use one light touch of warmth.", encoding="utf-8")
+
+    resolved = resolve_app_config(
+        env={
+            "CZM_CONFIG_PATH": str(config),
+            "OPENCLAW_BRIDGE_COMMAND": "bridge",
+            "OPENCLAW_REMINDER_STYLE_GUIDE": "Keep it calm and short.",
+            "OPENCLAW_REMINDER_STYLE_FILE": str(style_file),
+        }
+    )
+
+    assert resolved.bridge.reminder_style_guide == "Keep it calm and short.\n\nUse one light touch of warmth."

@@ -147,6 +147,8 @@ Supported env vars:
 - `OPENCLAW_BRIDGE_TARGET`
 - `OPENCLAW_BRIDGE_TIMEOUT_SECONDS`
 - `OPENCLAW_PYTHON_BIN`
+- `OPENCLAW_REMINDER_STYLE_GUIDE`
+- `OPENCLAW_REMINDER_STYLE_FILE`
 
 The bridge command is expected to run inside the existing OpenClaw container and to consume the payload and instructions from the environment or from the temp files the notifier passes in.
 
@@ -157,6 +159,7 @@ Example:
 ```env
 OPENCLAW_BRIDGE_COMMAND="/app/application-notifier/deploy/openclaw-reminder-wrapper.sh"
 OPENCLAW_REMINDER_COMPOSE_COMMAND="your-actual-openclaw-compose-entrypoint"
+OPENCLAW_REMINDER_STYLE_GUIDE="Warm, human, and lightly conversational. Avoid sounding robotic or repetitive."
 ```
 
 The notifier exposes these payload variables to the bridge process:
@@ -174,6 +177,23 @@ The notifier exposes these payload variables to the bridge process:
 - `OPENCLAW_REMINDER_COMPOSE_COMMAND`
 
 The primary OpenClaw path should read `APPLICATION_NOTIFIER_PAYLOAD_JSON` or `APPLICATION_NOTIFIER_PAYLOAD_FILE` plus `APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS`. The fallback plain-text path only uses `APPLICATION_NOTIFIER_MESSAGE_TEXT` when the structured handoff is unavailable.
+
+### Fine-tuning reminder tone
+
+The base OpenClaw handoff instructions live in [openclaw_bridge.py](/Users/dhnkjc7/Documents/application-notifier/src/application_notifier/openclaw_bridge.py) in `build_handoff_instructions(...)`.
+
+If you want to tune the final message style without editing code, use one or both of:
+
+- `OPENCLAW_REMINDER_STYLE_GUIDE` for short inline guidance
+- `OPENCLAW_REMINDER_STYLE_FILE` for longer writing preferences stored in a file
+
+Example:
+
+```env
+OPENCLAW_REMINDER_STYLE_GUIDE="Sound like a caring partner. One short greeting, natural wording, no bullet points, no medical advice, and no cheesy enthusiasm."
+```
+
+The style guide is appended to the structured instructions that OpenClaw receives. The factual payload stays deterministic; only the phrasing guidance changes.
 
 The bundled wrapper at [deploy/openclaw-reminder-wrapper.sh](/Users/dhnkjc7/Documents/application-notifier/deploy/openclaw-reminder-wrapper.sh) is intentionally tiny:
 

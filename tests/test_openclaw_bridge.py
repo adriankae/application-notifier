@@ -54,6 +54,31 @@ def test_structured_bridge_passes_payload_and_instructions(monkeypatch):
     assert result.instructions
 
 
+def test_structured_bridge_includes_custom_style_guide(monkeypatch):
+    captured: dict[str, object] = {}
+
+    def fake_run(command, env, capture_output, text, timeout, check):
+        captured["env"] = env
+        return SimpleNamespace(returncode=0, stdout="ok", stderr="")
+
+    monkeypatch.setattr("application_notifier.openclaw_bridge.subprocess.run", fake_run)
+
+    bridge = OpenClawBridgeConfig(
+        mode="command",
+        command="sh -lc 'cat'",
+        fallback_command=None,
+        target="6740655890",
+        timeout_seconds=5,
+        reminder_style_guide="Sound warm, lightly playful, and avoid sounding like a checklist.",
+    )
+
+    invoke_bridge(bridge, _payload(), "fallback text")
+
+    instructions = captured["env"]["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
+    assert "Style guide to follow:" in instructions
+    assert "lightly playful" in instructions
+
+
 def test_plain_text_bridge_uses_message_text_only_when_forced(monkeypatch):
     captured: dict[str, object] = {}
 
