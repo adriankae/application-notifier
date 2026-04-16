@@ -51,6 +51,9 @@ def test_structured_bridge_passes_payload_and_instructions(monkeypatch):
     assert json.loads(env["APPLICATION_NOTIFIER_PAYLOAD_JSON"])["slot"] == "morning"
     assert "Write a short, human-sounding reminder" in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
     assert "Do not use a dry heading" in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
+    assert "your job is to draft the final reminder message text only" in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
+    assert "Do not try to choose a chat" in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
+    assert "Then send the reminder through the existing Telegram bot/chat loop." not in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
     assert "Left elbow" in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
     assert result.instructions
 
