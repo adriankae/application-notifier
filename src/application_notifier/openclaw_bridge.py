@@ -28,9 +28,15 @@ def build_handoff_instructions(bridge: OpenClawBridgeConfig, payload: ReminderPa
     instructions = (
         "You are OpenClaw, and you own the final reminder wording and Telegram delivery.\n"
         "Write a short, human-sounding reminder using only the facts in the structured payload.\n"
+        "The reminder should feel warm, natural, and personal rather than like a system notification.\n"
+        "Do not use a dry heading such as 'Morning reminder' or 'Evening reminder'.\n"
+        "Open with a brief natural sentence, then add a short lead-in before listing the due spots.\n"
+        "Present the due locations as bullet points, one per line.\n"
+        "Use one consistent language throughout the whole reminder. If location names are in a different language, translate them so the final message reads naturally and consistently.\n"
         "Do not invent facts, extra locations, or medical advice.\n"
         "Mention every due location in the payload.\n"
-        "Keep it concise and natural for Telegram.\n"
+        "Do not mention phase numbers unless a style guide explicitly asks for them.\n"
+        "Keep it concise and natural for Telegram, but not clipped or robotic.\n"
         "Then send the reminder through the existing Telegram bot/chat loop.\n"
     )
     if bridge.reminder_style_guide:

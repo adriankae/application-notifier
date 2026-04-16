@@ -160,6 +160,7 @@ Example:
 OPENCLAW_BRIDGE_COMMAND="/app/application-notifier/deploy/openclaw-reminder-wrapper.sh"
 OPENCLAW_REMINDER_COMPOSE_COMMAND="your-actual-openclaw-compose-entrypoint"
 OPENCLAW_REMINDER_STYLE_GUIDE="Warm, human, and lightly conversational. Avoid sounding robotic or repetitive."
+OPENCLAW_REMINDER_STYLE_FILE="/app/application-notifier/deploy/openclaw-reminder-style-guide.txt"
 ```
 
 The notifier exposes these payload variables to the bridge process:
@@ -194,6 +195,16 @@ OPENCLAW_REMINDER_STYLE_GUIDE="Sound like a caring partner. One short greeting, 
 ```
 
 The style guide is appended to the structured instructions that OpenClaw receives. The factual payload stays deterministic; only the phrasing guidance changes.
+
+The repo also includes a ready-made German style file at [deploy/openclaw-reminder-style-guide.txt](/Users/dhnkjc7/Documents/application-notifier/deploy/openclaw-reminder-style-guide.txt).
+
+To use it in your server `.env`:
+
+```env
+OPENCLAW_REMINDER_STYLE_FILE=/app/application-notifier/deploy/openclaw-reminder-style-guide.txt
+```
+
+Because the installer syncs the repo into the OpenClaw container at `/app/application-notifier`, that container path is the right reference for the style file.
 
 The bundled wrapper at [deploy/openclaw-reminder-wrapper.sh](/Users/dhnkjc7/Documents/application-notifier/deploy/openclaw-reminder-wrapper.sh) is intentionally tiny:
 

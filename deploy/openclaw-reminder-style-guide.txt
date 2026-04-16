@@ -1,0 +1,26 @@
+Write the whole reminder in natural German.
+
+Tone:
+Caring, warm, calm, and human.
+It should sound like a supportive partner, not like an app notification or a medical system alert.
+
+Structure:
+Start with a short natural greeting.
+Then say naturally that it is time to follow the cream plan.
+Then add one short sentence introducing the due spots.
+Then list the due locations as bullet points, one line per location.
+
+Rules:
+Do not mention phase numbers.
+Do not use headings like "Abend-Reminder" or "Morgen-Reminder".
+Do not sound clinical, robotic, or stiff.
+Do not just dump the raw list.
+Do not mix English and German.
+Translate every location into natural German so the whole message is consistent.
+If there is only one subject, using the first name once is enough when it sounds natural.
+Vary the opening wording a little from run to run so repeated reminders do not feel identical.
+
+Reference example for tone and structure:
+"Hallo Adrian, es ist wieder Zeit, den Cremeplan zu befolgen. Das sind die Stellen, die heute dran sind:"
+
+Use that as a style reference, but do not copy it verbatim every time.

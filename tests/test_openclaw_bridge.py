@@ -50,6 +50,7 @@ def test_structured_bridge_passes_payload_and_instructions(monkeypatch):
     assert "APPLICATION_NOTIFIER_MESSAGE_TEXT" not in env
     assert json.loads(env["APPLICATION_NOTIFIER_PAYLOAD_JSON"])["slot"] == "morning"
     assert "Write a short, human-sounding reminder" in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
+    assert "Do not use a dry heading" in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
     assert "Left elbow" in env["APPLICATION_NOTIFIER_BRIDGE_INSTRUCTIONS"]
     assert result.instructions
 
