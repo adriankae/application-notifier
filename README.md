@@ -136,6 +136,12 @@ Supported env vars:
 
 The bridge command is expected to run inside the existing OpenClaw container and to consume the payload from the environment or from the temp files the notifier passes in.
 
+Example:
+
+```env
+OPENCLAW_BRIDGE_COMMAND=sh -lc 'exec openclaw message send --channel telegram --target "your-chat-or-username" --message "$APPLICATION_NOTIFIER_MESSAGE_TEXT"'
+```
+
 The notifier exposes these payload variables to the bridge process:
 
 - `APPLICATION_NOTIFIER_PAYLOAD_FILE`
@@ -244,4 +250,3 @@ journalctl -u application-notifier-evening.service -n 100 --no-pager
 - richer bridge health checks
 - better OpenClaw runtime detection
 - optional preview mode for multiple chat targets
-

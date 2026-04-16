@@ -46,7 +46,7 @@ if ! docker inspect "$OPENCLAW_CONTAINER_NAME" >/dev/null 2>&1; then
 fi
 
 echo "syncing notifier code into container: $OPENCLAW_CONTAINER_NAME"
-docker exec "$OPENCLAW_CONTAINER_NAME" mkdir -p "$NOTIFIER_DEPLOY_PATH_IN_CONTAINER"
+docker exec -u 0 "$OPENCLAW_CONTAINER_NAME" mkdir -p "$NOTIFIER_DEPLOY_PATH_IN_CONTAINER"
 tar \
   --exclude='.git' \
   --exclude='.venv' \
