@@ -16,7 +16,7 @@ OpenClaw remains responsible for the final wording and delivery through the exis
 ```text
 host systemd timer
   -> host oneshot service
-      -> docker exec <openclaw-container> python /app/application-notifier/run_reminder.py --slot morning|evening
+      -> docker exec <openclaw-container> python3 /app/application-notifier/run_reminder.py --slot morning|evening
           -> backend query + resolution + slot filtering
           -> structured reminder payload
           -> OpenClaw bridge command
@@ -80,24 +80,37 @@ Start from [.env.example](/Users/dhnkjc7/Documents/application-notifier/.env.exa
 - `CZM_API_KEY`
 - `OPENCLAW_CONTAINER_NAME`
 - `OPENCLAW_BRIDGE_COMMAND`
+- `OPENCLAW_PYTHON_BIN` if the container does not expose `python3`
 
 The bridge command should be the existing OpenClaw-side command or wrapper that knows how to send a message through the configured Telegram bot/chat loop.
 
-### 2. Run the installer
+### 2. Prepare as the normal user
 
 ```bash
 ./install.sh
 ```
 
-The installer will:
+The prepare step will:
 
 - verify `docker` exists
 - check the target OpenClaw container
 - sync the notifier code into the container
-- write systemd unit files
-- install or print the exact `sudo` commands needed for system-level deployment
-- enable the timers
+- write a generated env file at `./.generated/application-notifier.env`
 - perform a dry-run check
+- print the exact root-only next step
+
+### 3. Install systemd as root
+
+```bash
+sudo ./install.sh install-systemd
+```
+
+The root-only step will:
+
+- install the env file to `/etc/application-notifier/application-notifier.env`
+- install the systemd service and timer units to `/etc/systemd/system`
+- reload systemd
+- enable the morning and evening timers
 
 ## Configuration
 
@@ -133,6 +146,7 @@ Supported env vars:
 - `OPENCLAW_BRIDGE_FALLBACK_COMMAND`
 - `OPENCLAW_BRIDGE_TARGET`
 - `OPENCLAW_BRIDGE_TIMEOUT_SECONDS`
+- `OPENCLAW_PYTHON_BIN`
 
 The bridge command is expected to run inside the existing OpenClaw container and to consume the payload from the environment or from the temp files the notifier passes in.
 
@@ -151,6 +165,7 @@ The notifier exposes these payload variables to the bridge process:
 - `APPLICATION_NOTIFIER_SLOT`
 - `APPLICATION_NOTIFIER_TIMEZONE`
 - `APPLICATION_NOTIFIER_BRIDGE_TARGET`
+- `OPENCLAW_PYTHON_BIN`
 
 ## Usage
 
@@ -181,9 +196,9 @@ The repo ships host-level systemd templates in `deploy/systemd/`.
 Useful commands:
 
 ```bash
-systemctl status application-notifier-morning.timer
-journalctl -u application-notifier-morning.service -n 100 --no-pager
-systemctl start application-notifier-morning.service
+sudo systemctl status application-notifier-morning.timer
+sudo journalctl -u application-notifier-morning.service -n 100 --no-pager
+sudo systemctl start application-notifier-morning.service
 ```
 
 Timer schedules:
@@ -197,15 +212,15 @@ Timer schedules:
 ### Dry-run in the container
 
 ```bash
-docker exec <openclaw-container> python /app/application-notifier/run_reminder.py --slot morning --dry-run
-docker exec <openclaw-container> python /app/application-notifier/run_reminder.py --slot evening --dry-run
+docker exec <openclaw-container> python3 /app/application-notifier/run_reminder.py --slot morning --dry-run
+docker exec <openclaw-container> python3 /app/application-notifier/run_reminder.py --slot evening --dry-run
 ```
 
 ### Real run
 
 ```bash
-docker exec <openclaw-container> python /app/application-notifier/run_reminder.py --slot morning
-docker exec <openclaw-container> python /app/application-notifier/run_reminder.py --slot evening
+docker exec <openclaw-container> python3 /app/application-notifier/run_reminder.py --slot morning
+docker exec <openclaw-container> python3 /app/application-notifier/run_reminder.py --slot evening
 ```
 
 ### Container debugging
@@ -213,7 +228,7 @@ docker exec <openclaw-container> python /app/application-notifier/run_reminder.p
 ```bash
 docker exec -it <openclaw-container> sh
 env | grep -E 'CZM_|OPENCLAW_|APPLICATION_NOTIFIER_'
-python /app/application-notifier/run_reminder.py --slot morning --print-only
+python3 /app/application-notifier/run_reminder.py --slot morning --print-only
 ```
 
 ## Locking
@@ -235,6 +250,7 @@ If a timer fires but nothing is sent:
 2. check the container stderr/stdout for the bridge command
 3. verify `CZM_API_KEY` or the `czm` config file exists inside the container
 4. verify `OPENCLAW_BRIDGE_COMMAND` points at a real OpenClaw-side send path
+5. verify the OpenClaw container has `python3` on PATH, or set `OPENCLAW_PYTHON_BIN`
 
 Example log commands:
 
